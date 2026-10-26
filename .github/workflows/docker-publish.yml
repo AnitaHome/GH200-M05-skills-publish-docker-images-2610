@@ -23,6 +23,15 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 建置並推送 Docker 映像檔 (原生 Docker CLI)
+        run: |
+          # 注意：Docker 規範映像檔路徑必須全小寫
+          IMAGE_NAME="ghcr.io/${{ github.repository }}/stackoverflown:main"
+          IMAGE_NAME_LOWER=$(echo "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')
+          docker build . --tag "$IMAGE_NAME_LOWER"
+          docker push "$IMAGE_NAME_LOWER"
+
       - name: 設定 QEMU 模擬器 (支援多架構建置)
         uses: docker/setup-qemu-action@v3
 
@@ -37,4 +46,4 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: |
             ghcr.io/${{ github.repository }}/stackoverflown:main
-            ghcr.io/${{ github.repository }}/stackoverflown:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/stackoverflown:${{ github.sha }}          
