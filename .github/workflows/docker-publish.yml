@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
 
 # 關鍵權限宣告：賦予 GITHUB_TOKEN 寫入 Packages 與讀取儲存庫內容的權限
 permissions:
@@ -35,12 +41,17 @@ jobs:
       - name: 設定 Docker Buildx 建置引擎
         uses: docker/setup-buildx-action@v3
 
+      - name: 萃取 Docker 標籤與元數據 (Metadata)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ env.IMAGE_REPOSITORY }}/stackoverflown        
+
       - name: 建置並推送多架構映像檔 (Buildx)
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: |
-            ghcr.io/${{ env.IMAGE_REPOSITORY }}/stackoverflown:main
-            ghcr.io/${{ env.IMAGE_REPOSITORY }}/stackoverflown:${{ github.sha }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
